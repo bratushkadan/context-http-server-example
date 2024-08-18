@@ -23,7 +23,7 @@ func UuidHandler(w http.ResponseWriter, r *http.Request) {
 
 func PrivateHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	authToken, ok := AuthFromContext(ctx)
+	authToken, ok := authFromContext(ctx)
 	if !ok {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

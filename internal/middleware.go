@@ -17,11 +17,11 @@ type authKey struct{}
 
 var key authKey
 
-func ContextWithAuth(ctx context.Context, authHeader string) context.Context {
+func contextWithAuth(ctx context.Context, authHeader string) context.Context {
 	return context.WithValue(ctx, key, authHeader)
 }
 
-func AuthFromContext(ctx context.Context) (string, bool) {
+func authFromContext(ctx context.Context) (string, bool) {
 	authHeader, ok := ctx.Value(key).(string)
 	return authHeader, ok
 }
@@ -43,7 +43,7 @@ func CreateAuthMiddleware() Middleware {
 				w.Write([]byte(fmt.Sprintf("invalid %s provided : authenticated", constants.XAuthToken)))
 				return
 			}
-			ctx = ContextWithAuth(ctx, authTokenStr)
+			ctx = contextWithAuth(ctx, authTokenStr)
 			r = r.WithContext(ctx)
 			h.ServeHTTP(w, r)
 		})
@@ -54,10 +54,10 @@ type guidKey int
 
 const gKey guidKey = 1
 
-func contextWithGUID(ctx context.Context, guid string) context.Context {
+func contextWithReqId(ctx context.Context, guid string) context.Context {
 	return context.WithValue(ctx, gKey, guid)
 }
-func guidFromContext(ctx context.Context) (string, bool) {
+func reqIdFromContext(ctx context.Context) (string, bool) {
 	g, ok := ctx.Value(key).(string)
 	return g, ok
 }
@@ -68,9 +68,9 @@ func CreateRequestIdMiddleware() Middleware {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
 			if guid := req.Header.Get(constants.XRequestId); guid != "" {
-				ctx = contextWithGUID(ctx, guid)
+				ctx = contextWithReqId(ctx, guid)
 			} else {
-				ctx = contextWithGUID(ctx, uuid.New().String())
+				ctx = contextWithReqId(ctx, uuid.New().String())
 			}
 			req = req.WithContext(ctx)
 			h.ServeHTTP(rw, req)
